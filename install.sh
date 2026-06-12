@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-REPO_URL="https://codeload.github.com/gtarpenning/worktrickle/tar.gz/refs/heads/main"
+REPO_URL="https://codeload.github.com/ez-gz/worktrickle/tar.gz/refs/heads/main"
 INSTALL_BASE="${HOME}/.claude/skills"
 INSTALL_DIR="${INSTALL_BASE}/worktrickle"
 SKILL_FILE="worktrickle/SKILL.md"
@@ -49,7 +49,7 @@ curl -fsSL "${REPO_URL}" -o "${TARBALL}"
 echo "worktrickle: extracting"
 tar -xzf "${TARBALL}" -C "${TMP_DIR}"
 
-# The tarball root is gtarpenning-worktrickle-<sha>/ or worktrickle-main/
+# The tarball root is ez-gz-worktrickle-<sha>/ or worktrickle-main/
 EXTRACTED="$(find "${TMP_DIR}" -maxdepth 1 -mindepth 1 -type d | head -1)"
 if [ -z "${EXTRACTED}" ]; then
     echo "worktrickle: ERROR — could not find extracted directory in ${TMP_DIR}" >&2

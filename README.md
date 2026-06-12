@@ -1,26 +1,26 @@
 # worktrickle
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![GitHub Pages](https://img.shields.io/badge/docs-GitHub%20Pages-brightgreen)](https://gtarpenning.github.io/worktrickle/)
+[![GitHub Pages](https://img.shields.io/badge/docs-GitHub%20Pages-brightgreen)](https://ez-gz.github.io/worktrickle/)
 
 A Claude Code **skill** that plans and runs token-efficient multi-step
 workflows with tiered subagents — ~95% of the Workflow tool's value at a
 fraction of the tokens.
 
-Marketing site and docs: **https://gtarpenning.github.io/worktrickle/**
+Marketing site and docs: **https://ez-gz.github.io/worktrickle/**
 
 ## Install
 
 ### One-liner (curl)
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/gtarpenning/worktrickle/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/ez-gz/worktrickle/main/install.sh | bash
 ```
 
 ### From a git clone
 
 ```bash
-git clone https://github.com/gtarpenning/worktrickle
+git clone https://github.com/ez-gz/worktrickle
 ./worktrickle/install.sh
 ```
 
