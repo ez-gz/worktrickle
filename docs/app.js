@@ -87,13 +87,19 @@ function escHtml(s) {
 class TermAnimation {
   constructor(el) {
     this.el = el;
+    this.scroller = el.closest('.terminal-body') || el;
     this.running = false;
     this.html = '';
+  }
+
+  scroll() {
+    this.scroller.scrollTop = this.scroller.scrollHeight;
   }
 
   append(html) {
     this.html += html;
     this.el.innerHTML = this.html;
+    this.scroll();
   }
 
   appendLine(html) {
@@ -105,6 +111,7 @@ class TermAnimation {
       if (!this.running) return;
       this.html += `<span class="${cls}">${escHtml(ch)}</span>`;
       this.el.innerHTML = this.html + '<span class="cursor"> </span>';
+      this.scroll();
       await sleep(delay + Math.random() * 20);
     }
     this.el.innerHTML = this.html;
