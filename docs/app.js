@@ -198,8 +198,8 @@ function animateBars() {
 
   if (!naiveFill) return;
 
-  // Naive: ~1,290,000 tokens (~15x), worktrickle: ~87,000
-  const naiveTarget = 1290000;
+  // Naive: ~870,000 tokens (~10x), worktrickle: ~87,000
+  const naiveTarget = 870000;
   const wtTarget    = 87000;
   const duration    = 1800;
   const start       = performance.now();
@@ -235,35 +235,35 @@ const EFFORT_DATA = {
   },
   medium: {
     caps: '6 concurrent / 16 total',
-    scout: '600 tok',
-    worker: '1200 tok',
-    verifier: '800 tok',
+    scout: '800 tok',
+    worker: '1500 tok',
+    verifier: '1000 tok',
     model: 'haiku scouts + sonnet workers',
     breaker: 'pause at 3x est',
   },
   high: {
     caps: '8 concurrent / 24 total',
-    scout: '1000 tok',
+    scout: '1500 tok',
     worker: '3000 tok',
     verifier: '2000 tok',
-    model: 'haiku scouts + sonnet workers/verifiers',
+    model: 'haiku scouts + opus implementors',
     breaker: 'pause at 4x est',
   },
   xhigh: {
     caps: '10 concurrent / 40 total',
-    scout: '2000 tok',
-    worker: '5000 tok',
-    verifier: '3000 tok',
-    model: 'sonnet scouts + sonnet/opus workers',
-    breaker: 'pause at 5x est',
-  },
-  max: {
-    caps: 'uncapped',
     scout: '3000 tok',
     worker: '6000 tok',
     verifier: '4000 tok',
     model: 'sonnet scouts + opus workers',
-    breaker: 'none (Max plan)',
+    breaker: 'log only, no pause',
+  },
+  max: {
+    caps: 'uncapped',
+    scout: 'none',
+    worker: 'none',
+    verifier: 'none',
+    model: 'sonnet scouts + opus workers',
+    breaker: 'off (Max plan)',
   },
 };
 

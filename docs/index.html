@@ -114,7 +114,7 @@ wt: verify → PASS.
       </div>
       <div class="readout-card">
         <div class="readout-label">Scout output cap</div>
-        <div class="readout-val" id="r-scout">1000 tok</div>
+        <div class="readout-val" id="r-scout">1500 tok</div>
       </div>
       <div class="readout-card">
         <div class="readout-label">Worker output cap</div>
@@ -126,7 +126,7 @@ wt: verify → PASS.
       </div>
       <div class="readout-card">
         <div class="readout-label">Model tier</div>
-        <div class="readout-val" style="font-size:12px;" id="r-model">haiku scouts + sonnet workers/verifiers</div>
+        <div class="readout-val" style="font-size:12px;" id="r-model">haiku scouts + opus implementors</div>
       </div>
       <div class="readout-card">
         <div class="readout-label">Circuit breaker</div>
@@ -292,7 +292,8 @@ wt: verify → PASS.
 
     <p class="install-alt" style="margin-top:20px;">
       Optional — enable Fable escalation: <code style="font-family:var(--mono);color:var(--accent)">export ANTHROPIC_API_KEY=sk-ant-...</code><br>
-      Without it, worktrickle degrades gracefully and never proposes Fable.<br><br>
+      Hooked on Fable but not on its API bill? worktrickle buys its judgment by the decision (~$0.07), not by the session.<br>
+      Without a key, worktrickle degrades gracefully and never proposes Fable.<br><br>
       Full docs and source: <a href="https://github.com/ez-gz/worktrickle">github.com/ez-gz/worktrickle</a>
     </p>
   </div>

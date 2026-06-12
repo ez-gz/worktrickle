@@ -6,7 +6,7 @@
 **Token-efficient multi-agent workflows for Claude Code.** A skill, not a runtime.
 
 - **What** — plans a workflow, shows you a diagram, fans out tiered subagents, reports back with a cost ledger.
-- **Why** — naive multi-agent burns **~15×** the tokens of single-agent chat. worktrickle keeps ~95% of the value for a fraction of that.
+- **Why** — naive multi-agent burns **~10×** the tokens of single-agent chat. worktrickle keeps ~95% of the value for a fraction of that.
 - **Trust** — **nothing executes until you approve the plan.** Every step, model, and token estimate is drawn first:
 
 ```
@@ -107,7 +107,7 @@ triage ▶ scout ▶ plan ▶ diagram + YOUR APPROVAL ▶ execute (fan-out) ▶ 
 | 📏 **Terse contracts** | every subagent gets a rigid grammar + hard output cap; errors always verbatim |
 | ♻️ **Cache-aware spawning** | byte-identical prompt preamble, waves batched inside the 5-min cache TTL |
 | 🗜️ **Headroom-aware** | auto-detects the [headroom](https://github.com/chopratejas/headroom) proxy (60–95% claimed tool-token savings) |
-| ◆ **Fable escalation** | ≤2 tiny frontier-model calls per run, only for hard-to-reverse decisions |
+| ◆ **Fable escalation** | Fable's judgment on the decisions that matter — pennies per run, not API-session prices |
 
 ## 🎚️ The effort dial
 
@@ -126,8 +126,11 @@ At every setting: the approval gate, the cost ledger, never two writers on one f
 
 ## ◆ Fable escalation
 
-- Fable 5 is the smartest model but **not in Claude Code subscriptions** — worktrickle buys its judgment à la carte via the API.
-- Used **only** for plan arbitration between viable strategies, or design adjudication — small input, small output, **~$0.07 typical**.
+**We're all getting hooked on Fable.** It's the smartest model Anthropic ships — and it's API-only ($10/$50 per MTok), not in your Claude Code subscription. Running whole sessions on it adds up fast.
+
+worktrickle keeps Fable's impact at a fraction of the API bill: only the decisions where frontier judgment actually changes the outcome get routed through it.
+
+- **One tiny call** — plan arbitration between viable strategies, or final design adjudication. Small input, small output, **~$0.07 typical**.
 - Always drawn in the diagram as a `◆ fable` node before you approve. Never a surprise charge.
 - No `ANTHROPIC_API_KEY`? Never mentioned; the decision happens inline instead.
 
