@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>worktrickle — token-efficient multi-agent workflows for Claude Code</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 16 16%27%3E%3Crect width=%2716%27 height=%2716%27 fill=%27%23080a08%27/%3E%3Ctext x=%272%27 y=%2712%27 font-family=%27monospace%27 font-size=%2711%27 fill=%27%2333ff99%27%3E%E2%96%BC%3C/text%3E%3C/svg%3E">
+  <meta name="description" content="A Claude Code skill that plans and runs token-efficient multi-step workflows with tiered subagents — ~95% of the Workflow tool's value at a fraction of the tokens.">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+
+<!-- ── hero ─────────────────────────────────────────────────────────────── -->
+<header class="hero">
+  <div class="container">
+    <p class="hero-eyebrow">Claude Code Skill</p>
+    <h1>Plan before you burn.<br><em>worktrickle</em></h1>
+    <p class="hero-sub">Token-efficient multi-step workflows with tiered subagents — ~95% of the Workflow tool's value at a fraction of the tokens. Renders an ASCII plan diagram and blocks on your approval before anything runs.</p>
+    <a href="https://github.com/gtarpenning/worktrickle" class="hero-cta">View on GitHub</a>
+  </div>
+</header>
+
+<!-- ── terminal demo ─────────────────────────────────────────────────────── -->
+<section style="padding: 0 0 64px;">
+  <div class="container">
+    <div class="terminal-wrap">
+      <div class="terminal">
+        <div class="terminal-bar">
+          <span class="dot dot-r"></span>
+          <span class="dot dot-y"></span>
+          <span class="dot dot-g"></span>
+          <span class="terminal-title">claude — worktrickle demo</span>
+        </div>
+        <div class="terminal-body">
+          <div id="term-output"></div>
+        </div>
+        <button class="replay-btn" id="replay-btn">&#8635; replay</button>
+      </div>
+    </div>
+
+    <noscript>
+      <div style="background:#0a0a0a;border:1px solid #2a2a2a;border-radius:8px;padding:20px 24px;margin-top:16px;font-family:monospace;font-size:13px;line-height:1.65;color:#c8c8c8;white-space:pre;">
+&gt; /worktrickle migrate logging to structlog
+
+wt: triage — multi-area write task, cold scope. Pipeline it.
+wt: scouting src/ (1 haiku agent, read-only)...
+wt: scout done — 312 call sites across api/, core/, jobs/
+
+╔════════════════════════════════════════════════════════════════╗
+║ worktrickle: "migrate logging to structlog"                     ║
+╚════════════════════════════════════════════╤═══════════════════╝
+                                             ▼
+                                ┌─────────────────────────┐
+                                │ scout                   │
+                                │ haiku · ~10k            │
+                                └────────────┬────────────┘
+                                             │ [user approval gate]
+                                             ▼
+                                ┌─────────────────────────┐
+                                │ verify    sonnet · ~13k  │
+                                └────────────┬────────────┘
+                                             ▼
+  budget: ~86k est ≈ $0.31 (+$0.07 fable) · effort low
+
+wt: verify → PASS.
+      </div>
+    </noscript>
+  </div>
+</section>
+
+<!-- ── token comparison ──────────────────────────────────────────────────── -->
+<section class="token-compare">
+  <div class="container">
+    <p class="compare-title">Token burn — same task</p>
+    <div class="bars-wrap">
+      <div class="bar-row">
+        <span class="bar-label">naive multi-agent</span>
+        <div class="bar-track">
+          <div class="bar-fill bar-fill-naive" id="bar-naive"></div>
+        </div>
+        <span class="bar-count red" id="num-naive">0</span>
+      </div>
+      <div class="bar-row">
+        <span class="bar-label">worktrickle</span>
+        <div class="bar-track">
+          <div class="bar-fill bar-fill-wt" id="bar-wt"></div>
+        </div>
+        <span class="bar-count green" id="num-wt">0</span>
+      </div>
+    </div>
+    <p style="text-align:center;margin-top:24px;font-family:var(--mono);font-size:11px;color:var(--muted);">
+      Workflow tool typically spawns 6–10 full-context agents with unconstrained outputs — several hundred thousand tokens before synthesis.
+    </p>
+  </div>
+</section>
+
+<!-- ── effort dial ───────────────────────────────────────────────────────── -->
+<section class="effort-section">
+  <div class="container">
+    <h2 class="section-title">One knob to rule them all.</h2>
+    <p class="section-sub">The effort dial scales fanout, agent caps, output caps, model tier, and circuit breaker settings together. Default: <code style="font-family:var(--mono);color:var(--accent)">high</code>.</p>
+
+    <div class="dial-control">
+      <button class="dial-btn" data-level="low">low</button>
+      <button class="dial-btn" data-level="medium">medium</button>
+      <button class="dial-btn active" data-level="high">high</button>
+      <button class="dial-btn" data-level="xhigh">xhigh</button>
+      <button class="dial-btn" data-level="max">max</button>
+    </div>
+
+    <div class="dial-readout">
+      <div class="readout-card">
+        <div class="readout-label">Agent caps</div>
+        <div class="readout-val" id="r-caps">8 concurrent / 24 total</div>
+      </div>
+      <div class="readout-card">
+        <div class="readout-label">Scout output cap</div>
+        <div class="readout-val" id="r-scout">1000 tok</div>
+      </div>
+      <div class="readout-card">
+        <div class="readout-label">Worker output cap</div>
+        <div class="readout-val" id="r-worker">3000 tok</div>
+      </div>
+      <div class="readout-card">
+        <div class="readout-label">Verifier output cap</div>
+        <div class="readout-val" id="r-verifier">2000 tok</div>
+      </div>
+      <div class="readout-card">
+        <div class="readout-label">Model tier</div>
+        <div class="readout-val" style="font-size:12px;" id="r-model">haiku scouts + sonnet workers/verifiers</div>
+      </div>
+      <div class="readout-card">
+        <div class="readout-label">Circuit breaker</div>
+        <div class="readout-val" id="r-breaker">pause at 4x est</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── pipeline phases ───────────────────────────────────────────────────── -->
+<section class="pipeline-section">
+  <div class="container">
+    <h2 class="section-title">Seven phases. Zero wasted agents.</h2>
+    <p class="section-sub" style="margin-bottom:48px;">Every run follows a canonical pipeline. Trivial tasks skip the pipeline entirely. The approved diagram is the run's contract.</p>
+
+    <div class="phases">
+      <div class="phase">
+        <div class="phase-connector">
+          <div class="phase-dot"></div>
+          <div class="phase-line"></div>
+        </div>
+        <div class="phase-body">
+          <div class="phase-name">01 · Triage</div>
+          <div class="phase-desc">Inline. Decides whether to pipeline at all. Trivial tasks execute immediately with no fanout — the cheapest agent is the one never spawned.</div>
+          <div class="phase-meta">inline · session model · ~1k</div>
+        </div>
+      </div>
+
+      <div class="phase">
+        <div class="phase-connector">
+          <div class="phase-dot"></div>
+          <div class="phase-line"></div>
+        </div>
+        <div class="phase-body">
+          <div class="phase-name">02 · Scout</div>
+          <div class="phase-desc">One read-only haiku agent maps the codebase. Finds call sites, identifies partitions, surfaces viable strategies. Strict output cap: 400–3000 tok depending on effort level.</div>
+          <div class="phase-meta">haiku · read-only · output-capped</div>
+        </div>
+      </div>
+
+      <div class="phase">
+        <div class="phase-connector">
+          <div class="phase-dot"></div>
+          <div class="phase-line"></div>
+        </div>
+        <div class="phase-body">
+          <div class="phase-name">03 · Plan</div>
+          <div class="phase-desc">Inline synthesis of scout findings into a concrete execution plan: partitions, wave ordering, model assignment, token estimates per step.</div>
+          <div class="phase-meta">inline · ~3k</div>
+        </div>
+      </div>
+
+      <div class="phase">
+        <div class="phase-connector">
+          <div class="phase-dot"></div>
+          <div class="phase-line"></div>
+        </div>
+        <div class="phase-body">
+          <div class="phase-name">04 · Diagram + Approve</div>
+          <div class="phase-desc">Renders the ASCII workflow diagram — nodes, edges, model tiers, token estimates, dollar budget — and blocks until you approve, edit, or cancel. The diagram is the contract.</div>
+          <div class="phase-meta">inline · approval gate · non-skippable</div>
+        </div>
+      </div>
+
+      <div class="phase">
+        <div class="phase-connector">
+          <div class="phase-dot"></div>
+          <div class="phase-line"></div>
+        </div>
+        <div class="phase-body">
+          <div class="phase-name">05 · Execute</div>
+          <div class="phase-desc">Wave-parallel workers with file-disjoint partitions. Prompt-cache-aware: byte-identical preamble, sibling spawns batched inside the 5-minute TTL. Each worker reports DONE|PARTIAL|FAIL in a rigid grammar.</div>
+          <div class="phase-meta">haiku/sonnet workers · cache-warm batching</div>
+        </div>
+      </div>
+
+      <div class="phase">
+        <div class="phase-connector">
+          <div class="phase-dot"></div>
+          <div class="phase-line"></div>
+        </div>
+        <div class="phase-body">
+          <div class="phase-name">06 · Verify</div>
+          <div class="phase-desc">One sonnet verifier sees only the diff and acceptance criteria — not the full codebase. Reports correctness-affecting findings only. Clean: "PASS."</div>
+          <div class="phase-meta">sonnet verifier · diff-only scope</div>
+        </div>
+      </div>
+
+      <div class="phase">
+        <div class="phase-connector">
+          <div class="phase-dot"></div>
+          <div class="phase-line"></div>
+        </div>
+        <div class="phase-body">
+          <div class="phase-name">07 · Synthesize</div>
+          <div class="phase-desc">Inline ledger: est vs actual per step, total token and dollar spend, final summary. Writes structured state to /tmp scratch for resumability.</div>
+          <div class="phase-meta">inline · ledger + state file</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── model tiering ─────────────────────────────────────────────────────── -->
+<section class="tiering-section">
+  <div class="container">
+    <h2 class="section-title">Right model, right role.</h2>
+    <p class="section-sub" style="margin-bottom:40px;">Haiku scouts at ~1/3 Sonnet cost. 40–85% of total savings come almost entirely from this one choice.</p>
+
+    <div class="tier-grid">
+      <div class="tier-card">
+        <div class="tier-card-label">read-only scouting</div>
+        <div class="tier-card-name haiku">haiku</div>
+        <div class="tier-card-desc">~1/3 Sonnet cost. Maps code, finds call sites, identifies strategies. Strictly read-only, hard output cap.</div>
+      </div>
+      <div class="tier-card">
+        <div class="tier-card-label">mechanical workers</div>
+        <div class="tier-card-name haiku">haiku</div>
+        <div class="tier-card-desc">Repetitive substitutions, format transforms, boilerplate. No judgment needed — haiku suffices.</div>
+      </div>
+      <div class="tier-card">
+        <div class="tier-card-label">standard workers</div>
+        <div class="tier-card-name sonnet">sonnet</div>
+        <div class="tier-card-desc">Complex writes requiring judgment. The default workhorse at high/xhigh. Promoted to opus at max.</div>
+      </div>
+      <div class="tier-card">
+        <div class="tier-card-label">verification</div>
+        <div class="tier-card-name sonnet">sonnet</div>
+        <div class="tier-card-desc">Correctness-only review of diff + criteria. Sees no more context than required. PASS or findings.</div>
+      </div>
+      <div class="tier-card">
+        <div class="tier-card-label">high-stakes arbitration</div>
+        <div class="tier-card-name fable">fable</div>
+        <div class="tier-card-desc">At most one direct API call per run (~$0.07). Plan arbitration or final design adjudication. Degrades gracefully without API key.</div>
+      </div>
+      <div class="tier-card">
+        <div class="tier-card-label">triage / plan / synth</div>
+        <div class="tier-card-name inline">inline</div>
+        <div class="tier-card-desc">The orchestrating session model handles planning, diagram rendering, and synthesis — no agent spawn cost.</div>
+      </div>
+    </div>
+
+    <blockquote class="pullquote">
+      <p>"the cheapest agent is the one never spawned"</p>
+      <cite>worktrickle design north star</cite>
+    </blockquote>
+  </div>
+</section>
+
+<!-- ── install ───────────────────────────────────────────────────────────── -->
+<section class="install-section">
+  <div class="container">
+    <h2 class="section-title">Install in thirty seconds.</h2>
+    <p class="section-sub" style="margin-bottom:32px;">No runtime, no daemon. A markdown playbook that makes the main Claude Code session the orchestrator.</p>
+
+    <div class="install-box">
+      curl -fsSL https://raw.githubusercontent.com/gtarpenning/worktrickle/main/install.sh | bash
+      <button class="copy-btn" data-copy="curl -fsSL https://raw.githubusercontent.com/gtarpenning/worktrickle/main/install.sh | bash">copy</button>
+    </div>
+
+    <p class="install-alt">
+      Or clone manually:
+    </p>
+    <div class="install-box" style="margin-top:8px;">
+      git clone https://github.com/gtarpenning/worktrickle &amp;&amp; ln -s "$(pwd)/worktrickle/worktrickle" ~/.claude/skills/worktrickle
+      <button class="copy-btn" data-copy="git clone https://github.com/gtarpenning/worktrickle && ln -s &quot;$(pwd)/worktrickle/worktrickle&quot; ~/.claude/skills/worktrickle">copy</button>
+    </div>
+
+    <p class="install-alt" style="margin-top:20px;">
+      Optional — enable Fable escalation: <code style="font-family:var(--mono);color:var(--accent)">export ANTHROPIC_API_KEY=sk-ant-...</code><br>
+      Without it, worktrickle degrades gracefully and never proposes Fable.<br><br>
+      Full docs and source: <a href="https://github.com/gtarpenning/worktrickle">github.com/gtarpenning/worktrickle</a>
+    </p>
+  </div>
+</section>
+
+<!-- ── footer ────────────────────────────────────────────────────────────── -->
+<footer>
+  <div class="container">
+    <p>
+      <a href="https://github.com/gtarpenning/worktrickle">github.com/gtarpenning/worktrickle</a>
+      &nbsp;·&nbsp;
+      MIT License
+    </p>
+  </div>
+</footer>
+
+<script src="./app.js"></script>
+</body>
+</html>
